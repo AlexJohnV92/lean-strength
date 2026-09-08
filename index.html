@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1220"><meta name="apple-mobile-web-app-capable" content="yes">
+<title>Lean Strength — V3</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b1220;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.app{max-width:760px;margin:auto;min-height:100vh;background:#0b1220}.top{padding:20px 16px 12px;position:sticky;top:0;background:#0b1220ee;backdrop-filter:blur(16px);z-index:10}
+.top h1{margin:0;font-size:22px}.top p{margin:4px 0 0;color:#94a3b8;font-size:13px}
+.nav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 10px;position:sticky;top:76px;background:#0b1220ee;backdrop-filter:blur(16px);z-index:9}
+.nav button{border:0;border-radius:12px;background:#172033;color:#94a3b8;padding:10px 5px;font-weight:700;font-size:12px}.nav button.on{background:#2563eb;color:white}
+main{padding:10px 12px 100px}.card{background:#121b2e;border:1px solid #22304a;border-radius:18px;padding:15px;margin-bottom:12px}
+.hero{background:linear-gradient(145deg,#182a52,#111827)}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#60a5fa;font-weight:800}
+h2{font-size:19px;margin:5px 0 10px}h3{font-size:15px;margin:0}.muted{color:#94a3b8;font-size:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+select,input{width:100%;border:1px solid #334155;background:#0f172a;color:#f8fafc;border-radius:10px;padding:10px;font:inherit}label{font-size:11px;color:#94a3b8}
+.btn{border:0;border-radius:11px;padding:11px 14px;font-weight:800}.primary{background:#2563eb;color:white}.ghost{background:#1e293b;color:#cbd5e1}.danger{background:#7f1d1d;color:#fecaca}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.pill{font-size:11px;padding:5px 8px;border-radius:99px;background:#172554;color:#93c5fd;font-weight:800}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#0f172a;border-radius:13px;padding:12px}.big{font-size:22px;font-weight:900}.stat span{font-size:10px;color:#94a3b8}
+.exercise{padding:15px 0;border-top:1px solid #22304a}.exercise:first-child{border-top:0}.exhead{display:flex;justify-content:space-between;gap:8px}.video{color:#60a5fa;text-decoration:none;font-size:11px;font-weight:800}.pres{font-size:12px;color:#cbd5e1;margin:4px 0 10px}
+.set{display:grid;grid-template-columns:28px 1fr 1fr 35px;gap:7px;align-items:center;margin:6px 0}.setno{font-size:11px;color:#64748b;text-align:center}.check{width:22px;height:22px;accent-color:#22c55e}
+.notice{padding:10px;border-radius:12px;background:#10213c;color:#bfdbfe;font-size:12px;margin-top:10px}.success{color:#86efac}.warn{color:#fbbf24}
+.barbg{height:8px;background:#1e293b;border-radius:99px;overflow:hidden}.bar{height:100%;background:#3b82f6;border-radius:99px}
+.timer{font-size:46px;font-variant-numeric:tabular-nums;text-align:center;font-weight:900;letter-spacing:.04em;margin:8px 0}.timerBtns{display:flex;gap:8px}.timerBtns button{flex:1}
+canvas{width:100%;height:210px;background:#0f172a;border-radius:12px;margin-top:8px}
+.history{padding:10px 0;border-top:1px solid #22304a}.history:first-child{border-top:0}
+.hidden{display:none}.stickyActions{position:fixed;bottom:0;left:0;right:0;padding:10px max(12px,calc((100vw - 760px)/2 + 12px)) calc(10px + env(safe-area-inset-bottom));background:#0b1220ee;backdrop-filter:blur(16px);z-index:20}
+.stickyActions .btn{width:100%}.small{font-size:11px}
+</style></head>
+<body><div class="app">
+<header class="top"><h1>Lean Strength</h1><p>8-week Push • Pull • Legs • Upper</p></header>
+<nav class="nav">
+<button class="on" onclick="tab('dash',this)">Dashboard</button><button onclick="tab('workout',this)">Workout</button>
+<button onclick="tab('progress',this)">Progress</button><button onclick="tab('more',this)">More</button>
+</nav>
+<main>
+<section id="dash">
+<div class="card hero"><div class="eyebrow">Current block</div><h2 id="dashTitle"></h2><p id="dashNote" class="muted"></p><div class="barbg"><div id="dashBar" class="bar"></div></div><p id="dashPct" class="muted"></p>
+<div class="grid2"><button class="btn primary" onclick="quickStart()">Start next workout</button><button class="btn ghost" onclick="tab('progress',document.querySelectorAll('.nav button')[2])">View progress</button></div></div>
+<div class="statgrid"><div class="stat"><div class="big" id="sessions">0</div><span>SESSIONS</span></div><div class="stat"><div class="big" id="prs">0</div><span>PRs</span></div><div class="stat"><div class="big" id="volume">0</div><span>TONNES</span></div></div>
+<div class="card"><div class="row"><h2>Next up</h2><span class="pill" id="nextSplit">PUSH</span></div><p class="muted">Your plan uses double progression: add reps within the range first, then increase load when all working sets reach the top.</p></div>
+</section>
+
+<section id="workout" class="hidden">
+<div class="card"><div class="grid2"><div><label>WEEK</label><select id="week" onchange="renderWorkout()"></select></div><div><label>SESSION</label><select id="session" onchange="renderWorkout()"><option>push</option><option>pull</option><option>legs</option><option>upper</option></select></div></div>
+<div class="row" style="margin-top:12px"><span id="wlabel" class="muted"></span><button class="btn ghost small" onclick="openTimer(90)">REST 1:30</button></div></div>
+<div id="workoutCard"></div>
+</section>
+
+<section id="progress" class="hidden"><div id="progressTop"></div><div id="charts"></div><div id="prsList"></div></section>
+
+<section id="more" class="hidden"><div class="card"><h2>Install Lean Strength</h2><p class="muted">Install the app on your Home Screen for offline workout logging.</p><button class="btn primary" onclick="installApp()">Install app</button></div>
+<div class="card"><h2>Rest timer</h2><div class="timer" id="timer">01:30</div><div class="timerBtns"><button class="btn primary" onclick="startTimer()">Start</button><button class="btn ghost" onclick="pauseTimer()">Pause</button><button class="btn ghost" onclick="resetTimer()">Reset</button></div><div class="grid2" style="margin-top:9px"><button class="btn ghost" onclick="setTimer(60)">60 sec</button><button class="btn ghost" onclick="setTimer(180)">180 sec</button></div></div>
+<div class="card"><h2>Session history</h2><div id="historyList"></div></div>
+<div class="card"><h2>Backup</h2><p class="muted">Export your training data before changing phones or browsers.</p><button class="btn primary" onclick="exportData()">Export data</button><input id="import" type="file" accept=".json" onchange="importData(event)" style="margin-top:9px"></div>
+</section>
+</main>
+<div class="stickyActions hidden" id="finishBar"><button class="btn primary" onclick="finishSession()">Finish & save workout</button></div>
+</div>
+<script>
+const plans={
+push:[["Incline Barbell Bench Press",3,6,10,"incline barbell bench press proper form"],["Flat Dumbbell Bench Press",3,8,12,"dumbbell bench press proper form"],["Seated Dumbbell Shoulder Press",3,8,12,"seated dumbbell shoulder press proper form"],["Cable Lateral Raise",3,12,20,"cable lateral raise proper form"],["Cable Fly",2,10,15,"cable chest fly proper form"],["Rope Triceps Pushdown",3,10,15,"rope triceps pushdown proper form"]],
+pull:[["Lat Pulldown",3,6,10,"lat pulldown proper form"],["Chest-Supported Row",3,8,12,"chest supported row proper form"],["Seated Cable Row",3,8,12,"seated cable row proper form"],["Cable Face Pull",3,12,20,"cable face pull proper form"],["Incline Dumbbell Curl",3,8,12,"incline dumbbell curl proper form"],["Hammer Curl",2,10,15,"dumbbell hammer curl proper form"]],
+legs:[["Barbell Back Squat",3,5,8,"barbell back squat proper form"],["Romanian Deadlift",3,6,10,"romanian deadlift proper form"],["Leg Press",3,8,12,"leg press proper form"],["Seated Leg Curl",3,10,15,"seated leg curl proper form"],["Leg Extension",2,10,15,"leg extension proper form"],["Standing Calf Raise",3,10,15,"standing calf raise proper form"],["Cable Crunch",3,10,15,"cable crunch proper form"]],
+upper:[["Incline Dumbbell Bench Press",3,8,12,"incline dumbbell bench press proper form"],["Pull-Up / Assisted Pull-Up",3,6,10,"assisted pull up proper form"],["Machine Chest Press",3,8,12,"machine chest press proper form"],["One-Arm Dumbbell Row",3,8,12,"one arm dumbbell row proper form"],["Dumbbell Lateral Raise",3,12,20,"dumbbell lateral raise proper form"],["Cable Triceps Extension",2,10,15,"cable overhead triceps extension proper form"],["EZ-Bar Curl",2,10,15,"ez bar bicep curl proper form"]]};
+const phases=[
+["Base","Establish clean starting loads and technique."],["Build","Add reps while keeping 1–3 reps in reserve."],["Overload","Push toward the top of each rep range."],["Deload","Reduce working sets ~35% and keep 3–4 reps in reserve."],["Build II","Return to full volume and beat earlier numbers."],["Strength","Bias the lower end of ranges on compounds."],["Overload II","Chase rep-range PRs, then make small load jumps."],["Consolidate","Record strong performances without grinding reps."]];
+let db=JSON.parse(localStorage.getItem("lsv2_db")||"{}"), hist=JSON.parse(localStorage.getItem("lsv2_hist")||"[]");
+let next=JSON.parse(localStorage.getItem("lsv2_next")||'{"week":1,"session":"push"}');
+for(let i=1;i<=8;i++){week.innerHTML+=`<option value="${i}">Week ${i} — ${phases[i-1][0]}</option>`} week.value=next.week;session.value=next.session;
+let t=90,interval=null,startedAt=null;
+
+function key(w,s,e){return `w${w}_${s}_${e}`} function save(){localStorage.setItem("lsv2_db",JSON.stringify(db));localStorage.setItem("lsv2_hist",JSON.stringify(hist));localStorage.setItem("lsv2_next",JSON.stringify(next))}
+function tab(id,b){document.querySelectorAll("main>section").forEach(x=>x.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("on"));b.classList.add("on");document.getElementById("finishBar").classList.toggle("hidden",id!=="workout");if(id==="dash")renderDash();if(id==="workout")renderWorkout();if(id==="progress")renderProgress();if(id==="more")renderHistory()}
+function quickStart(){week.value=next.week;session.value=next.session;tab("workout",document.querySelectorAll(".nav button")[1])}
+function renderDash(){dashTitle.textContent=`Week ${next.week} — ${phases[next.week-1][0]}`;dashNote.textContent=phases[next.week-1][1];dashBar.style.width=(next.week/8*100)+"%";dashPct.textContent=`${Math.round(next.week/8*100)}% through the block`;nextSplit.textContent=next.session.toUpperCase();sessions.textContent=hist.length;prs.textContent=countPRs();volume.textContent=(totalVolume()/1000).toFixed(1)}
+function renderWorkout(){
+ const w=+week.value,s=session.value,p=phases[w-1],arr=plans[s];wlabel.textContent=`Week ${w}/8 • ${p[0]} — ${p[1]}`;
+ let html=`<div class="card"><div class="row"><div><h2>${s[0].toUpperCase()+s.slice(1)} day</h2><div class="muted">Warm up before working sets. Stop if technique breaks down.</div></div><span class="pill">${w===4?"DELOAD":"PROGRESSIVE"}</span></div>`;
+ arr.forEach((ex,i)=>{let sets=w===4?Math.max(1,Math.round(ex[1]*.65)):ex[1];let k=key(w,s,i);html+=`<div class="exercise"><div class="exhead"><div><h3>${ex[0]}</h3><div class="pres">${sets} × ${ex[2]}–${ex[3]} reps</div></div><a class="video" target="_blank" href="https://www.youtube.com/results?search_query=${encodeURIComponent(ex[4])}">▶ VIDEO</a></div>`;
+ for(let j=0;j<sets;j++){let old=(db[k]||[])[j]||{};html+=`<div class="set"><span class="setno">S${j+1}</span><input type="number" step=".5" inputmode="decimal" placeholder="kg" value="${old.kg??""}" onchange="upd('${k}',${j},'kg',this.value)"><input type="number" inputmode="numeric" placeholder="reps" value="${old.reps??""}" onchange="upd('${k}',${j},'reps',this.value)"><input class="check" type="checkbox" ${old.done?"checked":""} onchange="upd('${k}',${j},'done',this.checked)"></div>`}
+ let sug=smartTarget(s,i,ex[2],ex[3]); if(sug)html+=`<div class="notice">${sug}</div>`;html+=`</div>`});
+ html+=`</div>`;workoutCard.innerHTML=html;
+}
+function upd(k,j,f,v){db[k]??=[];db[k][j]??={};db[k][j][f]=f==="done"?v:(v===""?null:Number(v));save()}
+function previous(s,i){let out=[];for(let w=1;w<=8;w++){(db[key(w,s,i)]||[]).forEach(x=>{if(x.kg>0&&x.reps>0)out.push({...x,w})})}return out}
+function smartTarget(s,i,min,max){let a=previous(s,i);if(!a.length)return "🎯 First time: choose a load that leaves ~2 reps in reserve.";let last=a[a.length-1], all=previous(s,i).filter(x=>x.w===last.w);let top=all.length&&all.every(x=>x.reps>=max);if(top)return `🚀 <b>Progression unlocked:</b> try about ${nice(last.kg*1.025)} kg next time.`;return `🎯 Target: ${nice(last.kg)} kg • aim for ${Math.min(max,last.reps+1)} reps/set.`}
+function nice(x){return Math.round(x*2)/2}
+function finishSession(){let w=+week.value,s=session.value;hist.unshift({date:new Date().toISOString(),week:w,session:s});hist=hist.slice(0,100);let order=["push","pull","legs","upper"],idx=order.indexOf(s);next={week:w+(idx===3?1:0)>8?8:w+(idx===3?1:0),session:order[(idx+1)%4]};save();renderDash();alert("Workout saved. Great session.");}
+function totalVolume(){let v=0;Object.values(db).forEach(a=>a.forEach(x=>{if(x.kg&&x.reps)v+=x.kg*x.reps}));return v}
+function countPRs(){let n=0;Object.keys(db).forEach(k=>{let a=db[k]||[];a.forEach(x=>{if(!x.kg||!x.reps)return;let old=0;for(let kk of Object.keys(db)){if(kk===k)continue;let aa=db[kk]||[];aa.forEach(y=>{if(y.kg&&y.reps&&y.kg*y.reps>old)old=y.kg*y.reps})}if(x.kg*x.reps>old)n++})});return n}
+function renderProgress(){let html=`<div class="card"><div class="row"><div><div class="eyebrow">Performance</div><h2>Exercise history</h2></div><span class="pill">${hist.length} SESSIONS</span></div><p class="muted">Charts show your logged best set (weight × reps) for the selected exercise.</p><select id="chartEx" onchange="drawChart()"></select><canvas id="chart"></canvas></div>`;progressTop.innerHTML=html;
+let opts="";Object.entries(plans).forEach(([s,a])=>a.forEach((e,i)=>opts+=`<option value="${s}|${i}">${s.toUpperCase()} — ${e[0]}</option>`));chartEx.innerHTML=opts;drawChart();
+let p=`<div class="card"><h2>Personal records</h2>`;Object.entries(plans).forEach(([s,a])=>a.forEach((e,i)=>{let best=null;previous(s,i).forEach(x=>{if(!best||x.kg*x.reps>best.kg*best.reps)best=x});if(best)p+=`<div class="history"><div class="row"><b>${e[0]}</b><span class="success">${best.kg} kg × ${best.reps}</span></div><div class="muted">Week ${best.w} • estimated volume score ${(best.kg*best.reps).toFixed(0)}</div></div>`}));p+="</div>";prsList.innerHTML=p}
+function drawChart(){let [s,i]=chartEx.value.split("|");let a=previous(s,+i),c=document.getElementById("chart"),ctx=c.getContext("2d"),dpr=devicePixelRatio||1,w=c.clientWidth,h=210;c.width=w*dpr;c.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);ctx.strokeStyle="#334155";ctx.lineWidth=1;for(let y=20;y<h-20;y+=40){ctx.beginPath();ctx.moveTo(32,y);ctx.lineTo(w-10,y);ctx.stroke()}if(!a.length){ctx.fillStyle="#94a3b8";ctx.font="13px sans-serif";ctx.fillText("Log a few sessions to see your trend.",32,100);return}let vals=a.map(x=>x.kg*x.reps),mx=Math.max(...vals)*1.1,mn=Math.min(...vals)*.9;ctx.strokeStyle="#60a5fa";ctx.lineWidth=3;ctx.beginPath();a.forEach((x,j)=>{let px=35+j*(w-55)/Math.max(1,a.length-1),py=h-25-(x.kg*x.reps-mn)/(mx-mn)*(h-55);if(j===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)});ctx.stroke();ctx.fillStyle="#e2e8f0";ctx.font="11px sans-serif";ctx.fillText(`${a[a.length-1].kg} kg × ${a[a.length-1].reps}`,35,18)}
+function openTimer(sec){setTimer(sec);document.getElementById("more").classList.remove("hidden");document.getElementById("finishBar").classList.add("hidden");startTimer();window.scrollTo(0,0)}
+function setTimer(sec){t=sec;renderTimer()}function renderTimer(){let m=Math.floor(t/60),s=t%60;timer.textContent=`${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`}function startTimer(){if(interval)return;interval=setInterval(()=>{if(t>0){t--;renderTimer()}else{clearInterval(interval);interval=null;navigator.vibrate?.([200,100,200])}},1000)}function pauseTimer(){clearInterval(interval);interval=null}function resetTimer(){pauseTimer();t=90;renderTimer()}
+function renderHistory(){historyList.innerHTML=hist.length?hist.map(x=>`<div class="history"><b>${x.session.toUpperCase()}</b> • Week ${x.week}<div class="muted">${new Date(x.date).toLocaleString()}</div></div>`).join(""):"<p class='muted'>No saved sessions yet.</p>"}
+function exportData(){let blob=new Blob([JSON.stringify({db,hist,next},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="lean-strength-v2-backup.json";a.click()}
+function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);db=x.db||{};hist=x.hist||[];next=x.next||next;save();renderDash();alert("Backup imported.")}catch{alert("Could not read that backup.")}};r.readAsText(f)}
+renderDash();renderWorkout();renderTimer();
+</script><script>
+let deferredInstallPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e});
+async function installApp(){if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null}else alert("iPhone: Safari → Share → Add to Home Screen → turn on Open as Web App. Android: Chrome → ⋮ → Install app.");}
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));
+</script></body></html>
